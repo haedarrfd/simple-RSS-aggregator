@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -20,6 +21,25 @@ func main() {
 
 	// Set up an HTTP server and listen on the given port
 	router := chi.NewRouter()
+
+	// Set up CORS (Cross-Origin Resource Sharing) middleware
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
+
+	// Create a sub-path "/harmony", then the route is handled by handlerRead function
+	v1Router := chi.NewRouter()
+	v1Router.Get("/harmony", handlerRead)
+
+	// Mount this router on the main router path
+	router.Mount("/v1", v1Router)
+
+	// Create a new HTTP server configuration
 	server := &http.Server{
 		Handler: router,
 		Addr:    ":" + portString,
