@@ -32,9 +32,10 @@ func main() {
 		MaxAge:           300,
 	}))
 
-	// Create a sub-path "/harmony", then the route is handled by handlerRead function
+	// Create a sub-path route, then the route is handled by handler function
 	v1Router := chi.NewRouter()
 	v1Router.Get("/harmony", handlerRead)
+	v1Router.Get("/err", handlerErr)
 
 	// Mount this router on the main router path
 	router.Mount("/v1", v1Router)
