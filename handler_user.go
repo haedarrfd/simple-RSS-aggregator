@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/haedarrfd/simple-rss-aggregator/internal/auth"
 	"github.com/haedarrfd/simple-rss-aggregator/internal/database"
 )
 
@@ -39,5 +40,23 @@ func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	respondWithJSON(w, 200, databaseUserToUser(user))
+	respondWithJSON(w, 201, databaseUserToUser(user))
+}
+
+// handlerGetUser to retrieve a user based on an API key
+func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request) {
+	// Extract the API key from the request headers
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, fmt.Sprintf("Couldn't find the api key: %v", err))
+		return
+	}
+
+	// Find the user associated with the API key
+	user, err := apiCfg.DB.GetUserByAPIKey(r.Context(), apiKey)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, fmt.Sprintf("Couldn't get user: %v", err))
+	}
+
+	respondWithJSON(w, http.StatusOK, databaseUserToUser(user))
 }
