@@ -25,6 +25,14 @@ type Feed struct {
 	UserID    uuid.UUID `json:"user_id"`
 }
 
+type FeedFollow struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdateAt  time.Time `json:"updated_at"`
+	UserID    uuid.UUID `json:"user_id"`
+	FeedID    uuid.UUID `json:"feed_id"`
+}
+
 // databaseUserToUser populated with the corresponding fields from users table
 func databaseUserToUser(dbUser database.User) User {
 	return User{
@@ -57,4 +65,15 @@ func databaseFeedsToFeeds(dbFeeds []database.Feed) []Feed {
 	}
 
 	return feeds
+}
+
+// databaseFeedFolToFeedFol populated with the corresponding fields from feed_follows table
+func databaseFeedFolToFeedFol(dbFeedFol database.FeedFollow) FeedFollow {
+	return FeedFollow{
+		ID:        dbFeedFol.ID,
+		CreatedAt: dbFeedFol.CreatedAt,
+		UpdateAt:  dbFeedFol.UpdatedAt,
+		UserID:    dbFeedFol.UserID,
+		FeedID:    dbFeedFol.FeedID,
+	}
 }
