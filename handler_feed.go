@@ -10,7 +10,7 @@ import (
 	"github.com/haedarrfd/simple-rss-aggregator/internal/database"
 )
 
-// handlerCreateUser is a method that has access to apiConfig struct (database) to create a data
+// handlerCreateFeed is a method that has access to apiConfig struct (database) to create a data
 func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	// To capture the expected name from request body
 	type parameters struct {
@@ -28,7 +28,7 @@ func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Add new user into users table in the database, if there's an error return client error
+	// Add new feed into feeds table in the database, if there's an error return client error
 	feed, err := apiCfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		Name:      params.Name,
@@ -43,4 +43,16 @@ func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Reques
 	}
 
 	respondWithJSON(w, 201, databaseFeedToFeed(feed))
+}
+
+// handlerGetFeeds is to retrieve all feeds stored in the database
+func (apiCfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
+	// Get all feeds that are already stored in the database
+	feeds, err := apiCfg.DB.GetFeeds(r.Context())
+	if err != nil {
+		respondWithError(w, 400, fmt.Sprintf("Couldn't get feeds: %v", err))
+		return
+	}
+
+	respondWithJSON(w, 201, databaseFeedsToFeeds(feeds))
 }
