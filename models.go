@@ -77,3 +77,14 @@ func databaseFeedFolToFeedFol(dbFeedFol database.FeedFollow) FeedFollow {
 		FeedID:    dbFeedFol.FeedID,
 	}
 }
+
+// databaseFeedFolsToFeedFols converts into a slice of feeds
+func databaseFeedFolsToFeedFols(dbFeedFols []database.FeedFollow) []FeedFollow {
+	feedFollows := []FeedFollow{}
+
+	for _, dbFeedFol := range dbFeedFols {
+		feedFollows = append(feedFollows, databaseFeedFolToFeedFol(dbFeedFol))
+	}
+
+	return feedFollows
+}
