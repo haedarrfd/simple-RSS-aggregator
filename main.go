@@ -2,10 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -21,13 +21,6 @@ type apiConfig struct {
 }
 
 func main() {
-	// Fetch the RSS feed from the given URL
-	feed, err := urlToFeed("https://wagslane.dev/index.xml")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(feed)
-
 	// Setting up the environment
 	godotenv.Load(".env")
 
@@ -47,10 +40,14 @@ func main() {
 		log.Fatal("Can't connect to database:", err)
 	}
 
+	dbQueries := database.New(conn)
 	// apiConfig to pass database handler, so they have access to database
 	apiCfg := apiConfig{
-		DB: database.New(conn),
+		DB: dbQueries,
 	}
+
+	// Start the feed scraping process
+	go startScraping(dbQueries, 10, time.Minute)
 
 	// Set up an HTTP server and listen on the given port
 	router := chi.NewRouter()
