@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +21,13 @@ type apiConfig struct {
 }
 
 func main() {
+	// Fetch the RSS feed from the given URL
+	feed, err := urlToFeed("https://wagslane.dev/index.xml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(feed)
+
 	// Setting up the environment
 	godotenv.Load(".env")
 
