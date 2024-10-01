@@ -1,30 +1,28 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/haedarrfd/simple-rss-aggregator/internal/auth"
 	"github.com/haedarrfd/simple-rss-aggregator/internal/database"
 )
 
-// Type definition for an HTTP handler function that requires authentication
 type authedHandler func(http.ResponseWriter, *http.Request, database.User)
 
-// middlewareAuth ensures that only requests with a valid API key can access the wrapped handler
+// Ensures that only requests with a valid API key can access the wrapped handler
 func (apiCfg *apiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Extract the API key from the request headers
+		// Get the API key from headers
 		apiKey, err := auth.GetAPIKey(r.Header)
 		if err != nil {
-			respondWithError(w, http.StatusUnauthorized, fmt.Sprintf("Couldn't find the api key: %v", err))
+			responseWithError(w, http.StatusUnauthorized, "Couldn't find the api key")
 			return
 		}
 
-		// Find the user associated with the API key
+		// Retrieve a user based on an API key
 		user, err := apiCfg.DB.GetUserByAPIKey(r.Context(), apiKey)
 		if err != nil {
-			respondWithError(w, http.StatusNotFound, fmt.Sprintf("Couldn't get user: %v", err))
+			responseWithError(w, http.StatusNotFound, "Couldn't get user")
 			return
 		}
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -11,24 +10,22 @@ import (
 	"github.com/haedarrfd/simple-rss-aggregator/internal/database"
 )
 
-// handlerCreateFeedFollow is a method that has access to apiConfig struct (database) to create a data
 func (apiCfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
-	// To capture the expected parameters from request body
 	type parameters struct {
 		FeedID uuid.UUID `json:"feed_id"`
 	}
-	// Create a JSON decoder that read request body
+	// JSON decoder that read request body
 	decoder := json.NewDecoder(r.Body)
 
 	params := parameters{}
-	// Parsed that request body, if there's an error return client error
+	// Parsed that request body
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return
 	}
 
-	// Add new feed follows into feed_follows table, if there's an error return client error
+	// Add new feed follow into feed_follows table
 	feedFollow, err := apiCfg.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
@@ -37,25 +34,24 @@ func (apiCfg *apiConfig) handlerCreateFeedFollow(w http.ResponseWriter, r *http.
 		FeedID:    params.FeedID,
 	})
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't create feed follow: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Couldn't add new feed follow")
 		return
 	}
 
-	respondWithJSON(w, 201, databaseFeedFolToFeedFol(feedFollow))
+	responseWithJSON(w, http.StatusOK, databaseFeedFolToFeedFol(feedFollow))
 }
 
-// Handler function to get all feeds followed by the user
+// Retrieve all feeds that the user followed
 func (apiCfg *apiConfig) handlerGetFeedFollows(w http.ResponseWriter, r *http.Request, user database.User) {
 	feedFollows, err := apiCfg.DB.GetFeedFollows(r.Context(), user.ID)
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't get feed follows: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Couldn't get feed follows")
 		return
 	}
 
-	respondWithJSON(w, 200, databaseFeedFolsToFeedFols(feedFollows))
+	responseWithJSON(w, http.StatusOK, databaseFeedFolsToFeedFols(feedFollows))
 }
 
-// Handler function to delete feed followed by the user
 func (apiCfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.Request, user database.User) {
 	// Get the url parameter
 	feedFollowIDStr := chi.URLParam(r, "feedFollowID")
@@ -63,19 +59,19 @@ func (apiCfg *apiConfig) handlerDeleteFeedFollow(w http.ResponseWriter, r *http.
 	// Parse the url parameter to uuid
 	feedFollowID, err := uuid.Parse(feedFollowIDStr)
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't parse: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Invalid feed follow ID")
 		return
 	}
 
-	// Delete the feed follow, if there's an error return client error
+	// Delete the feed follow from feed_follow table
 	err = apiCfg.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
 		ID:     feedFollowID,
 		UserID: user.ID,
 	})
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't delete feed follow: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Couldn't delete feed follow")
 		return
 	}
 
-	respondWithJSON(w, 200, struct{}{})
+	responseWithJSON(w, http.StatusOK, struct{}{})
 }

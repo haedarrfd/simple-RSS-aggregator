@@ -12,10 +12,9 @@ import (
 	"github.com/haedarrfd/simple-rss-aggregator/internal/database"
 )
 
-// startScraping fetching and scraping feeds using multiple concurrent goroutines at the specified time intervals
+// Fetching and scraping feeds using multiple concurrent goroutines at the specified time intervals
 func startScraping(db *database.Queries, concurency int, timeBetweenRequest time.Duration) {
 	log.Printf("Collecting feeds every %s on %v goroutines...", timeBetweenRequest, concurency)
-	// Make a request on this interval
 	ticker := time.NewTicker(timeBetweenRequest)
 
 	// Infinite loop that runs every time a new value come across the ticker channel
@@ -27,24 +26,22 @@ func startScraping(db *database.Queries, concurency int, timeBetweenRequest time
 			continue
 		}
 
-		// WaitGroup to synchronize the completion of all goroutines
-		waitGrp := &sync.WaitGroup{}
+		// Synchronization to wait for all of goroutines to finish executing
+		wg := &sync.WaitGroup{}
 		for _, feed := range feeds {
-			// Add 1 to WaitGroup for every feed
-			waitGrp.Add(1)
+			wg.Add(1)
 
-			// spawn new goroutine to scrape the feed concurrently
-			go scrapeFeed(db, waitGrp, feed)
+			// Spawn new goroutine to scrape the feed concurrently
+			go scrapeFeed(db, wg, feed)
 		}
 
-		// Wait for all the spawned goroutines to complete before continue the loop
-		waitGrp.Wait()
+		// Wait all all the goroutines have finished
+		wg.Wait()
 	}
 }
 
-// scrapeFeed scrapes a single feed from the provided URL
-func scrapeFeed(db *database.Queries, waitGrp *sync.WaitGroup, feed database.Feed) {
-	defer waitGrp.Done()
+func scrapeFeed(db *database.Queries, wg *sync.WaitGroup, feed database.Feed) {
+	defer wg.Done()
 
 	// Mark the feed as fetched in the database
 	_, err := db.MarkFeedAsFetched(context.Background(), feed.ID)
@@ -54,13 +51,13 @@ func scrapeFeed(db *database.Queries, waitGrp *sync.WaitGroup, feed database.Fee
 	}
 
 	// Scrape the feed
-	rssFeed, err := urlToFeed(feed.Url)
+	rssFeed, err := fetchFeed(feed.Url)
 	if err != nil {
 		log.Printf("Couldn't collect feed %s: %v", feed.Name, err)
 		return
 	}
 
-	// Log each individualy post
+	// Loop each individualy posts
 	for _, item := range rssFeed.Channel.Item {
 		// Handle description potential null values
 		description := sql.NullString{}
