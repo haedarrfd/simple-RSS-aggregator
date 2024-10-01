@@ -47,7 +47,7 @@ func main() {
 	}
 
 	// Start the feed scraping process
-	go startScraping(dbQueries, 10, time.Minute)
+	go startScraping(dbQueries, 10, time.Hour)
 
 	// Set up an HTTP server and listen on the given port
 	router := chi.NewRouter()
@@ -73,6 +73,7 @@ func main() {
 	v1Router.Post("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerCreateFeedFollow))
 	v1Router.Get("/feed_follows", apiCfg.middlewareAuth(apiCfg.handlerGetFeedFollows))
 	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
+	v1Router.Get("/posts", apiCfg.middlewareAuth(apiCfg.handlerGetPostsForUser))
 
 	// Mount this router on the main router path
 	router.Mount("/v1", v1Router)
