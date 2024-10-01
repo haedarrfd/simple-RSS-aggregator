@@ -24,35 +24,35 @@ type RSSItem struct {
 	PubDate     string `xml:"pubDate"`
 }
 
-// urlToFeed fetch an RSS feed from the given URL
-func urlToFeed(url string) (RSSFeed, error) {
-	// Set a timeout of 10 seconds for the HTTP request
+// Fetch an RSS feed from the given URL
+func fetchFeed(url string) (*RSSFeed, error) {
+	// Set a timeout of 10 seconds for requests
 	httpClient := http.Client{
 		Timeout: 10 * time.Second,
 	}
 
-	// Make an HTTP GET request to fetch the RSS feed from the provided URL
+	// GET request to retrieve the RSS feed from the provided URL
 	response, err := httpClient.Get(url)
 	if err != nil {
-		return RSSFeed{}, err
+		return nil, err
 	}
 
-	// Close response body after fetching
+	// Close it after fetching
 	defer response.Body.Close()
 
 	// Read all response body
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return RSSFeed{}, err
+		return nil, err
 	}
 
 	rssFeed := RSSFeed{}
 
-	// Unmarshal (parse) the XML data into rssFeed struct
+	// Unmarshal (parse) the XML data into rssFeed
 	err = xml.Unmarshal(data, &rssFeed)
 	if err != nil {
-		return RSSFeed{}, err
+		return nil, err
 	}
 
-	return rssFeed, nil
+	return &rssFeed, nil
 }

@@ -15,23 +15,21 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Hold a connection to database (in this case postgres)
+// Configuration struct for API handlers
 type apiConfig struct {
 	DB *database.Queries
 }
 
 func main() {
-	// Setting up the environment
 	godotenv.Load(".env")
 
-	portString := os.Getenv("PORT")
-	if portString == "" {
-		log.Fatal("PORT is not found in the env")
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT is not set")
 	}
-
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		log.Fatal("DB_URL is not found in the env")
+		log.Fatal("DB_URL is not set")
 	}
 
 	// Open a connection to postgresql
@@ -40,8 +38,8 @@ func main() {
 		log.Fatal("Can't connect to database:", err)
 	}
 
+	// Allowing to interact with the database through pre-defined methods
 	dbQueries := database.New(conn)
-	// apiConfig to pass database handler, so they have access to database
 	apiCfg := apiConfig{
 		DB: dbQueries,
 	}
@@ -49,7 +47,6 @@ func main() {
 	// Start the feed scraping process
 	go startScraping(dbQueries, 10, time.Hour)
 
-	// Set up an HTTP server and listen on the given port
 	router := chi.NewRouter()
 
 	// Set up CORS (Cross-Origin Resource Sharing) middleware
@@ -64,8 +61,6 @@ func main() {
 
 	// Create sub-path route, then the route is handled by handler function
 	v1Router := chi.NewRouter()
-	v1Router.Get("/harmony", handlerRead)
-	v1Router.Get("/err", handlerErr)
 	v1Router.Post("/users", apiCfg.handlerCreateUser)
 	v1Router.Get("/users", apiCfg.middlewareAuth(apiCfg.handlerGetUser))
 	v1Router.Post("/feeds", apiCfg.middlewareAuth(apiCfg.handlerCreateFeed))
@@ -75,18 +70,18 @@ func main() {
 	v1Router.Delete("/feed_follows/{feedFollowID}", apiCfg.middlewareAuth(apiCfg.handlerDeleteFeedFollow))
 	v1Router.Get("/posts", apiCfg.middlewareAuth(apiCfg.handlerGetPostsForUser))
 
-	// Mount this router on the main router path
+	// Mount sub-router in the main router
 	router.Mount("/v1", v1Router)
 
-	// Create a new HTTP server configuration
+	// Creates a new HTTP server
 	server := &http.Server{
 		Handler: router,
-		Addr:    ":" + portString,
+		Addr:    ":" + port,
 	}
 
-	log.Printf("Server starting on port %v\n", portString)
+	log.Printf("Server starting on port %v\n", port)
 
-	// Start the server, if any error appear immediately stop the program
+	// Start the server
 	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)

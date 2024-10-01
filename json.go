@@ -6,34 +6,33 @@ import (
 	"net/http"
 )
 
-// respondWithError sends an HTTP response with an error message in JSON format
-func respondWithError(w http.ResponseWriter, code int, msg string) {
-	// Check if the internal server error
+// Sends an HTTP response with an error message in JSON
+func responseWithError(w http.ResponseWriter, code int, errMsg string) {
+	// Internal server error
 	if code > 499 {
-		log.Println("Responding with 5XX error: ", msg)
+		log.Println("Responding with 5XX error: ", errMsg)
 	}
 
-	// errorResponse struct to format the error message as a JSON format
 	type errorResponse struct {
 		Error string `json:"error"`
 	}
 
-	respondWithJSON(w, code, errorResponse{Error: msg})
+	responseWithJSON(w, code, errorResponse{Error: errMsg})
 }
 
-// respondWithJSON sends a JSON response to the client
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+// Sends an HTTP response with the payload in JSON
+func responseWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	// Add the content type in JSON format
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code)
+
 	// Turn the payload to a JSON format
 	data, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Failed to marshal JSON response %v\n", payload)
+		log.Printf("Failed to marshal JSON %v\n", err)
 		w.WriteHeader(500)
 		return
 	}
 
-	// Add the content type to tell the client that the response is in JSON format,
-	// send the HTTP status code,then write the JSON to response body
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(code)
 	w.Write(data)
 }

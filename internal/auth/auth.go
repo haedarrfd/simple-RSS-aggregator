@@ -6,16 +6,15 @@ import (
 	"strings"
 )
 
-// GetAPIKey extracts an API key from the headers of an HTTP request
+// Get an API key from headers of an incoming HTTP request
 func GetAPIKey(headers http.Header) (string, error) {
-	// Get the authorization from the request headers, if anything goes wrong return an error
+	// Retrieve the value of Authorization header
 	authHeader := headers.Get("Authorization")
 	if authHeader == "" {
 		return "", errors.New("no authorization header included")
 	}
 
-	// Split the authorization into two parts (ApiKey and the actual ApiKey),
-	// if anything goes wrong return an error
+	// Split the string of authHeader into two parts (ApiKey and the actual ApiKey)
 	splitAuth := strings.Split(authHeader, " ")
 	if len(splitAuth) < 2 || splitAuth[0] != "ApiKey" {
 		return "", errors.New("malformed authorization header")

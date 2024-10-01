@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -10,25 +9,23 @@ import (
 	"github.com/haedarrfd/simple-rss-aggregator/internal/database"
 )
 
-// handlerCreateFeed is a method that has access to apiConfig struct (database) to create a data
 func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Request, user database.User) {
-	// To capture the expected name from request body
 	type parameters struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	}
-	// Create a JSON decoder that read request body
+	// JSON decoder that read request body
 	decoder := json.NewDecoder(r.Body)
 
 	params := parameters{}
-	// Parsed that request body, if there's an error return client error
+	// Parsed that request body
 	err := decoder.Decode(&params)
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Error parsing JSON: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return
 	}
 
-	// Add new feed into feeds table in the database, if there's an error return client error
+	// Add new feed into feeds table
 	feed, err := apiCfg.DB.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		Name:      params.Name,
@@ -38,21 +35,20 @@ func (apiCfg *apiConfig) handlerCreateFeed(w http.ResponseWriter, r *http.Reques
 		UserID:    user.ID,
 	})
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't add new user: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Couldn't add new feed")
 		return
 	}
 
-	respondWithJSON(w, 201, databaseFeedToFeed(feed))
+	responseWithJSON(w, http.StatusOK, databaseFeedToFeed(feed))
 }
 
-// handlerGetFeeds is to retrieve all feeds stored in the database
+// Retrieve all feeds that are already stored in the database
 func (apiCfg *apiConfig) handlerGetFeeds(w http.ResponseWriter, r *http.Request) {
-	// Get all feeds that are already stored in the database
 	feeds, err := apiCfg.DB.GetFeeds(r.Context())
 	if err != nil {
-		respondWithError(w, 400, fmt.Sprintf("Couldn't get feeds: %v", err))
+		responseWithError(w, http.StatusInternalServerError, "Couldn't get feeds")
 		return
 	}
 
-	respondWithJSON(w, 201, databaseFeedsToFeeds(feeds))
+	responseWithJSON(w, http.StatusOK, databaseFeedsToFeeds(feeds))
 }
