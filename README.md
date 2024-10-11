@@ -1,64 +1,63 @@
 ## RSS Aggregator App
 
-At the top level, an RSS aggregator is a tool that allows you to view and read all the latest posts from your favorite blogs and websites in one place. This simple RSS Aggregator project was built in Go programming language that allows users to create, retrieve, and manage feeds using REST APIs. It uses PostgreSQL as the database and implements authentication using API keys.
+An RSS aggregator is a tool that allows you to view and read all the latest posts from your favorite blogs and websites in one place. This simple RSS Aggregator project was built in Go programming language that allows users to create, retrieve, and manage feeds using REST APIs. It uses PostgreSQL as the database and implements authentication using API keys.
 
 ## 🔧 Requirements
 
-To run this project, you must have PostgreSQL and Go installed on your machine.
+To run this project, you must have Go, PostgreSQL, Goose and Sqlc installed on your machine.
 
 - Go: Version 1.20 or later
 - PostgreSQL: 15.0 or later
 - Goose: 3.22 or later
-- sqlc: 1.27 or later
+- Sqlc: 1.27 or later
 
 Make sure that PostgreSQL service is running and you should have the necessary credentials for database connection (e.g., username, password, and database name).
 
-## ⚡ Installation
+## 🔌 Installation
 
 - **If you haven't install goose, use this command to install it (see the documentation [goose](http://pressly.github.io/goose/))**
 
-```bash
+```
 $ go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
 
 - **If you haven't install sqlc, use this command to install it (see the documentation [sqlc](https://docs.sqlc.dev/en/stable/index.html))**
 
-```bash
+```
 $ go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 ```
 
 - **Clone this repository**
 
-```bash
+```
 $ git clone https://github.com/haedarrfd/simple-rss-aggregator.git
 $ cd simple-rss-aggregator
 ```
 
 - **Adds any missing module requirements**
 
-```bash
+```
 $ go mod tidy
 ```
 
-- **Create `.env` file or just change the `.env.example` to `.env` filename, then configure it based on your environment**
+- **Copy the example `.env` file**
 
-```bash
-PORT="enter the port"
-DB_URL=postgres://<user>:<password>@localhost:<port>/<database>?sslmode=disable
+```
+$ cp .env.example .env
 ```
 
 **Note**: If the PostgreSQL database user does not have a password, just leave it blank.
 
 - **Run database migrations**
 
-```bash
+```
 $ cd postgresql/schema
 $ goose up
 ```
 
 - **Run the project**
 
-```bash
+```
 $ go run main.go
 ```
 
@@ -66,24 +65,34 @@ $ go run main.go
 
 - **Build and run the project**
 
-```bash
+```
 $ go build && ./simple-rss-aggregator
 ```
 
 - **Use the project**
   To use the project you can use tools like _[Postman](https://www.postman.com/)_ or any other tools to interact with the API.
 
-## API Reference
+## 📖 API Reference
 
-#### Get all items
+#### Create a user
 
 ```http
-  GET /api/items
+  POST /v1/users
 ```
 
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `api_key` | `string` | **Required**. Your API key |
+| Parameter | Type     | Description             |
+| :-------- | :------- | :---------------------- |
+| `name`    | `string` | **Required**. Your name |
+
+#### Get a user by the API key
+
+```http
+  GET /v1/users
+```
+
+| Parameter       | Type  | Description                |
+| :-------------- | :---- | :------------------------- |
+| `authorization` | `key` | **Required**. Your API key |
 
 #### Get item
 
