@@ -18,32 +18,32 @@ Make sure that PostgreSQL service is running and you should have the necessary c
 - **If you haven't install goose, use this command to install it (see the documentation [goose](http://pressly.github.io/goose/))**
 
 ```
-$ go install github.com/pressly/goose/v3/cmd/goose@latest
+go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
 
 - **If you haven't install sqlc, use this command to install it (see the documentation [sqlc](https://docs.sqlc.dev/en/stable/index.html))**
 
 ```
-$ go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 ```
 
 - **Clone this repository**
 
 ```
-$ git clone https://github.com/haedarrfd/simple-rss-aggregator.git
-$ cd simple-rss-aggregator
+git clone https://github.com/haedarrfd/simple-rss-aggregator.git
+cd simple-rss-aggregator
 ```
 
 - **Adds any missing module requirements**
 
 ```
-$ go mod tidy
+go mod tidy
 ```
 
 - **Copy the example `.env` file**
 
 ```
-$ cp .env.example .env
+cp .env.example .env
 ```
 
 **Note**: If the PostgreSQL database user does not have a password, just leave it blank.
@@ -51,14 +51,14 @@ $ cp .env.example .env
 - **Run database migrations**
 
 ```
-$ cd postgresql/schema
-$ goose up
+cd postgresql/schema
+goose up
 ```
 
 - **Run the project**
 
 ```
-$ go run main.go
+go run main.go
 ```
 
 **Or**
@@ -66,7 +66,7 @@ $ go run main.go
 - **Build and run the project**
 
 ```
-$ go build && ./simple-rss-aggregator
+go build && ./simple-rss-aggregator
 ```
 
 - **Use the project**
@@ -76,37 +76,84 @@ $ go build && ./simple-rss-aggregator
 
 #### Create a user
 
-```http
+```
   POST /v1/users
 ```
 
-| Parameter | Type     | Description             |
-| :-------- | :------- | :---------------------- |
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
 | `name`    | `string` | **Required**. Your name |
 
 #### Get a user by the API key
 
-```http
+```
   GET /v1/users
 ```
 
-| Parameter       | Type  | Description                |
-| :-------------- | :---- | :------------------------- |
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
 | `authorization` | `key` | **Required**. Your API key |
 
-#### Get item
+#### Get all feeds
 
-```http
-  GET /api/items/${id}
+```
+  GET /v1/feeds
 ```
 
-| Parameter | Type     | Description                       |
-| :-------- | :------- | :-------------------------------- |
-| `id`      | `string` | **Required**. Id of item to fetch |
+#### Create a feed
 
-#### add(num1, num2)
+```
+  POST /v1/feeds
+```
 
-Takes two numbers and returns the sum.
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `authorization` | `key` | **Required**. Your API key |
+| `name` | `string` | **Required**. The name of the feed |
+| `url` | `string` | **Required**. The URL of the feed |
+| `user_id` | `string` | **Required**. The user who added this feed |
+
+#### Get all feed follows for user
+
+```
+  GET /v1/feed_follows
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `authorization` | `key` | **Required**. Your API key |
+
+#### Create a feed follow
+
+```
+  POST /v1/feed_follows
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `authorization` | `key` | **Required**. Your API key |
+| `feed_id` | `string` | **Required**. The ID of the feed that user wants to follow |
+
+#### Delete a feed follow
+
+```
+  DELETE /v1/feed_follows/{feedFollowID}
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `authorization` | `key` | **Required**. Your API key |
+| `feedFollowID` | `param` | **Required**. The ID of the feed |
+
+#### Get all posts to a user
+
+```
+  GET /v1/posts
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `authorization` | `key` | **Required**. Your API key |
 
 ## 📁 File Structure
 
